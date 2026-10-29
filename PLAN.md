@@ -42,6 +42,7 @@
 ### stock_movements
 | Column | Type | Constraints | Why |
 |---|---|---|---|
+| id | INTEGER | PRIMARY KEY | No duplicate IDs
 | product_id | INTEGER | NOT NULL, REFERENCES products(id) | each movement references a product |
 | signed_change | INTEGER | NOT NULL, CHECK (signed_change != 0)| can be pos or neg but not 0, amount product should be updated by |
 | reason | TEXT | NOT NULL, CHECK (reason IN ('restock', 'adjustment', 'sale')) | Must have some reason |
