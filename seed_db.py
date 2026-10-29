@@ -1,15 +1,8 @@
 import sqlite3
 from pathlib import Path
 
-connection = sqlite3.connect("inventory.db")
-connection.execute("PRAGMA foreign_keys = ON")
 
-folder = Path(__file__).parent
-
-connection.executescript((folder / "schema.sql").read_text(encoding="utf-8"))
-
-
-with connection:
+def seed(connection):
     connection.executemany("INSERT INTO suppliers (name) VALUES (?)", 
     [
         ('Tool Company',), 
@@ -52,5 +45,21 @@ with connection:
         (3, 5, 500, 5),
         (10, 2, 399, 5)
     ])
-connection.execute("SELECT COUNT(*) FROM suppliers").fetchone()[0]
-connection.close()
+
+if __name__ == "__main__":
+    connection = sqlite3.connect("inventory.db")
+    connection.execute("PRAGMA foreign_keys = ON")
+
+    folder = Path(__file__).parent
+
+    connection.executescript((folder / "schema.sql").read_text(encoding="utf-8"))
+    with connection:
+        seed(connection)
+    print(connection.execute("SELECT COUNT(*) FROM suppliers").fetchone()[0])
+    print(connection.execute("SELECT COUNT(*) FROM products").fetchone()[0])
+    print(connection.execute("SELECT COUNT(*) FROM sales").fetchone()[0])
+    print(connection.execute("SELECT COUNT(*) FROM sale_items").fetchone()[0])
+    print(connection.execute("SELECT COUNT(*) FROM stock_movements").fetchone()[0])
+
+    connection.close()
+
