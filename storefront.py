@@ -30,7 +30,7 @@ def add_product(connection, sku, name, category, supplier_id, unit_price, in_sto
         if "CHECK" in str(e):
             raise InventoryError("Negative number")
         raise InventoryError(f"Product couldn't be added: {e}")
-        
+
     connection.commit()
     return cursor.lastrowid
 
@@ -63,3 +63,22 @@ def delete_product(connection, sku):
         raise InventoryError(f"Cant delete product with sku: {sku} as it has already been sold or has a stock_movement")
     connection.commit()
     return cursor.rowcount == 1
+
+def search_products(connection, text="", category=None, max_price_cents=None, in_stock_only=False, low_stock_only=False):
+    sql = ("SELECT p.id, p.sku, p.name, s.name AS supplier, p.unit_price, p.in_stock "
+           "FROM products p JOIN suppliers s ON s.id = p.supplier_id "
+           "WHERE (p.name LIKE ? OR s.name LIKE ? OR p.sku LIKE ?)")
+    params = [f"%{text}%", f"%{text}%", f"%{text}%"]
+    if category is not None:
+        sql += " AND p.category = ?"
+        params.append(category)
+    if max_price_cents is not None:
+        sql += " AND p.unit_price <= ?"
+        params.append(max_price_cents)
+    if in_stock_only:
+        sql += " AND p.in_stock > 0"
+    if low_stock_only:
+        sql += " AND p.in_stock <= p.reorder_level"
+    sql += " ORDER BY p.name"
+    return connection.execute(sql, params).fetchall()
+
