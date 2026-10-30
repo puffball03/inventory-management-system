@@ -47,7 +47,7 @@ def seed(connection):
     ])
 
 if __name__ == "__main__":
-    connection = sqlite3.connect("inventory.db")
+    connection = connect("inventory.db")
     connection.execute("PRAGMA foreign_keys = ON")
 
     folder = Path(__file__).parent

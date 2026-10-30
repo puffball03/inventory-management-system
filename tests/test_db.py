@@ -1,8 +1,7 @@
 import pytest
-import sqlite3
 from pathlib import Path
 
-import storefront as db
+import inventory_db as db
 from seed_db import seed
 
 PROJECT_FOLDER = Path(__file__).parent.parent
@@ -11,7 +10,7 @@ PROJECT_FOLDER = Path(__file__).parent.parent
 def connection():
     con = db.connect(":memory:")
     con.executescript((PROJECT_FOLDER / "schema.sql").read_text(encoding="utf-8"))
-    seed(con)
+    with con: seed(con)
     yield con
     con.close()
 
@@ -30,3 +29,7 @@ def test_search_text_is_never_run_as_sql(connection):
 
 def test_delete_wrong_sku_fails(connection):
     assert db.delete_product(connection, "LOL") is False
+
+def test_low_stock(connection):
+    rows = db.stock_value_by_supplier(connection)
+    assert db.stock_value_by_supplier(connection)
