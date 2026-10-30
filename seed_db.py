@@ -12,10 +12,10 @@ def seed(connection):
 
     connection.executemany("INSERT INTO products (sku, name, category, unit_price, supplier_id, in_stock, reorder_level) VALUES (?, ?, ?, ?, ?, ?, ?)",[
         ('TOO-TOO-001', 'Wrench', 'Tools', 1000, 1, 10, 2 ), 
-        ('TOO-TOO-002', 'Hammer', 'Tools', 800, 1, 1, 2 ),
+        ('TOO-TOO-002', 'Hammer', 'Tools', 800, 1, 1, 2 ), #low stock
         ('TOO-TOO-003', 'Mallet', 'Tools', 500, 1, 10, 2 ),
         ('COM-COM-001', 'Monitor', 'Computers', 15000, 2, 4, 2 ),
-        ('COM-COM-002', 'Desktop', 'Computers', 40000, 2, 2, 2 ),
+        ('COM-COM-002', 'Desktop', 'Computers', 40000, 2, 2, 2 ), #low stock
         ('COM-COM-003', 'Mouse', 'Computers', 4000, 2, 14, 3 ),
         ('FOO-FOO-001', 'Chips', 'Food', 400, 3, 12, 4 ),
         ('FOO-FOO-002', 'Candy', 'Food', 200, 3, 25, 5 ),
@@ -47,7 +47,7 @@ def seed(connection):
     ])
 
 if __name__ == "__main__":
-    connection = sqlite3.connect("inventory.db")
+    connection = connect("inventory.db")
     connection.execute("PRAGMA foreign_keys = ON")
 
     folder = Path(__file__).parent

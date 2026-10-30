@@ -82,3 +82,43 @@ def search_products(connection, text="", category=None, max_price_cents=None, in
     sql += " ORDER BY p.name"
     return connection.execute(sql, params).fetchall()
 
+#----------Reports----------
+def stock_value_by_supplier(connection):
+    sql = ("""
+    SELECT s.name AS supplier, SUM(p.unit_price * p.in_stock) AS stock_value
+    FROM products p JOIN suppliers s ON s.id = p.supplier_id
+    GROUP BY s.id
+    ORDER BY stock_value DESC
+    """)
+    return connection.execute(sql).fetchall()
+
+def low_stock(connection):
+    sql = ("""
+    SELECT name, sku, in_stock, reorder_level - in_stock AS short_by
+    FROM products
+    WHERE in_stock <= reorder_level
+    ORDER BY short_by DESC
+    """)
+    return connection.execute(sql).fetchall()
+
+def sales_by_product(connection):
+    sql = ("""
+    SELECT p.name,
+           SUM(si.quantity) AS products_sold,
+           SUM(si.quantity * si.price_charged) AS revenue
+    FROM products p JOIN sale_items si ON si.product_id = p.id
+    GROUP BY p.id
+    ORDER BY revenue DESC
+    """)
+    return connection.execute(sql).fetchall()
+
+def never_sold(connection):
+    sql = ("""
+    SELECT p.name
+    FROM products p
+    WHERE NOT EXISTS (
+        SELECT 1 FROM sale_items si WHERE si.product_id = p.id
+    )
+    ORDER BY p.name
+    """)
+    return connection.execute(sql).fetchall()
