@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 import inventory_db as db
+import main as menu
 from seed_db import seed
 
 PROJECT_FOLDER = Path(__file__).parent.parent
@@ -112,5 +113,9 @@ def test_restock_0_items_is_refused(connection):
     with pytest.raises(db.InventoryError):
         db.restock(connection, "Wrench", 0)
     assert snapshot(connection) == before
+
+def test_format_cents():
+    assert db.format_cents(180000) == "$1,800.00"
+    assert db.format_cents(505) == "$5.05"
         
 

@@ -239,9 +239,14 @@ def row_counts(connection):
 
 def format_cents(cents):
     dollars, remainder = divmod(cents, 100)
-    return f"${dollars}.{remainder:.02d}"
+    return f"${dollars:,}.{remainder:02d}"
 
 def backup(connection, destination):
     with closing(connect(destination)) as target:
         connection.backup(target)
     return destination
+def verify_backup(connection, backup_path):
+    with closing(connect(backup_path)) as copy:
+        integrity = copy.execute("PRAGMA integrity_check").fetchone()[0]
+        return integrity, row_counts(connection), row_counts(copy)
+
