@@ -1,8 +1,8 @@
 import os
 import sqlite3
-from pathlib import Path
 from contextlib import closing
 from datetime import datetime
+from pathlib import Path
 
 DB_PATH = Path(os.environ.get("INVENTORY_DB", Path(__file__).parent / "inventory.db"))
 

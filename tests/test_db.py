@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 
 import inventory_db as db
-import main as menu
+
 from seed_db import seed
 
 PROJECT_FOLDER = Path(__file__).parent.parent
@@ -119,3 +119,36 @@ def test_format_cents():
     assert db.format_cents(505) == "$5.05"
         
 
+def test_add_product_returns_new_id(connection):
+    assert db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, 1500, 5, 1) == 13
+
+def test_add_product_with_unknown_supplier_refuses(connection):
+    with pytest.raises(db.InventoryError):
+        db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 99, 1500, 5, 1)
+
+def test_sold_product_cant_be_deleted(connection):
+    assert db.delete_product(connection, "DRI-DRI-002") is True
+    assert db.get_product(connection, "DRI-DRI-002") is None
+
+def names(rows):
+    return [row["name"] for row in rows]
+
+def test_search_category_filter(connection):
+    assert names(db.search_products(connection, category="Tools")) == ["Hammer", "Mallet", "Wrench"]
+
+def test_search_max_price_filter(connection):
+    assert names(db.search_products(connection, max_price_cents=200)) == ["Candy", "Tic-Tacs"]
+
+def test_search_in_stock_only_filter(connection):
+    db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, 1500, 0, 1)
+    assert "Saw" not in names(db.search_products(connection, in_stock_only=True))
+
+def test_search_low_stock_only_filter(connection):
+    assert names(db.search_products(connection, low_stock_only=True)) == ["Desktop", "Hammer"]
+
+def test_search_filters_combined(connection):
+    assert names(db.search_products(connection, category="Tools", low_stock_only=True)) == ["Hammer"]
+
+def test_restock_negative_amount_is_refused(connection):
+    with pytest.raises(db.InventoryError):
+        db.restock(connection, "TOO-TOO-002", -5)

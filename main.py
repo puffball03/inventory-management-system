@@ -1,7 +1,10 @@
-import inventory_db as db
 import sqlite3
 from contextlib import closing
+
+import inventory_db as db
 from seed_db import create_tables
+
+
 VERSION = "1.0.0"
 MONEY_COLUMNS = {"unit_price", "stock_value", "revenue"}
 
@@ -33,8 +36,10 @@ def print_rows(rows):
     if not rows:
         print("Nothing Found")
         return
-    columns = row[0].keys()
-    print(" | ".join(format_value(column, row[column]) for column in columns))
+    columns = rows[0].keys()
+    print(" | ".join(columns))
+    for row in rows:
+        print(" | ".join(format_value(column, row[column]) for column in columns))
 
 #Interacting with the database
 
@@ -107,7 +112,7 @@ def backup(connection):
     print(f"Backed up to {target}")
     print(f"integrity_check: {integrity}")
     print(f"live: {live_counts}")
-    prinf(f"backup: {backup_counts}")
+    print(f"backup: {backup_counts}")
 
 #Menu Logic
 
@@ -129,7 +134,7 @@ def run_action(action, connection):
         print(f"Sorry man: {error}")
     except OverflowError:
         print(f"NUMBER WAY TOO BIG")
-    except sqlite3.IntegrityError as error:
+    except sqlite3.Error as error:
         print(f"Database issue: {error}")
     except OSError as error:
         print(f"Could not write the file: {error}")
