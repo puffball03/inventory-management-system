@@ -104,7 +104,7 @@ def test_empty_sale_is_refused(connection):
 
 def test_duplicate_sku_refused(connection):
     with pytest.raises(db.InventoryError) as e:
-        db.add_product(connection, 'TOO-TOO-001', "FortniteBattlePassTM", 'Tools', 800, 2, 10, 2)
+        db.add_product(connection, 'TOO-TOO-001', "bruh", 'Tools', 800, 2, 10, 2)
     assert str(e.value) == "Duplicate sku"
 
 def test_restock_0_items_is_refused(connection):

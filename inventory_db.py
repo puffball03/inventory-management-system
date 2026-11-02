@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from pathlib import Path
-
+from contextlib import closing
 from datetime import datetime
 
 DB_PATH = Path(os.environ.get("INVENTORY_DB", Path(__file__).parent / "inventory.db"))
@@ -127,16 +127,6 @@ def never_sold(connection):
 
 #----------Stock-Changes-and-Sales----------#
 
-def restock(connection, name, amt):
-    if amt <= 0:
-        raise InventoryError
-    
-    sql = ("""
-    Select p.name 
-    FROM products p
-    WHERE name = p.name
-    """)
-
 def record_a_sale(connection, items, order_date=None):
     if not items:
         raise InventoryError("A sale needs at least one item")
@@ -249,7 +239,7 @@ def row_counts(connection):
 
 def format_cents(cents):
     dollars, remainder = divmod(cents, 100)
-    return f"${dollars}.{remainder}"
+    return f"${dollars}.{remainder:.02d}"
 
 def backup(connection, destination):
     with closing(connect(destination)) as target:
