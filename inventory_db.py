@@ -235,3 +235,14 @@ def restock(connection, sku, change, order_date=None):
         raise InventoryError("You shouldn't even be here")
 
     return new_quantity 
+
+TABLE_COUNT_QUERIES = {
+    "suppliers": "SELECT COUNT(*) FROM suppliers",
+    "products": "SELECT COUNT(*) FROM products",
+    "sales": "SELECT COUNT(*) FROM sales",
+    "sale_items": "SELECT COUNT(*) FROM sale_items",
+    "stock_movements": "SELECT COUNT(*) FROM stock_movements",
+}
+
+def row_counts(connection):
+    return {table: connection.execute(sql).fetchone()[0] for table, sql in TABLE_COUNT_QUERIES.items()}

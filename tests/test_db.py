@@ -102,5 +102,7 @@ def test_empty_sale_is_refused(connection):
     with pytest.raises(db.InventoryError) as e:
         db.record_a_sale(connection, [])
     assert str(e.value) == "A sale needs at least one item"
+
+
         
 
