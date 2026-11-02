@@ -246,3 +246,12 @@ TABLE_COUNT_QUERIES = {
 
 def row_counts(connection):
     return {table: connection.execute(sql).fetchone()[0] for table, sql in TABLE_COUNT_QUERIES.items()}
+
+def format_cents(cents):
+    dollars, remainder = divmod(cents, 100)
+    return f"${dollars}.{remainder}"
+
+def backup(connection, destination):
+    with closing(connect(destination)) as target:
+        connection.backup(target)
+    return destination

@@ -91,7 +91,6 @@ def test_adjust_of_zero_is_refused(connection):
     with pytest.raises(db.InventoryError):
         db.adjust(connection, "TOO-TOO-001", 0)
 
-
 def test_restock_unknown_product_is_refused(connection):
     before = snapshot(connection)
     with pytest.raises(db.InventoryError):
@@ -103,6 +102,15 @@ def test_empty_sale_is_refused(connection):
         db.record_a_sale(connection, [])
     assert str(e.value) == "A sale needs at least one item"
 
+def test_duplicate_sku_refused(connection):
+    with pytest.raises(db.InventoryError) as e:
+        db.add_product(connection, 'TOO-TOO-001', "FortniteBattlePassTM", 'Tools', 800, 2, 10, 2)
+    assert str(e.value) == "Duplicate sku"
 
+def test_restock_0_items_is_refused(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.restock(connection, "Wrench", 0)
+    assert snapshot(connection) == before
         
 
