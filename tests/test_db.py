@@ -152,3 +152,24 @@ def test_search_filters_combined(connection):
 def test_restock_negative_amount_is_refused(connection):
     with pytest.raises(db.InventoryError):
         db.restock(connection, "TOO-TOO-002", -5)
+
+@pytest.mark.parametrize("price, quantity", [(-1, 5), (1500, -1)])
+def test_add_product_negative_price_or_quantity_gets_refused(connection, price, quantity):
+    with pytest.raises(db.InventoryError):
+        db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, price, quantity, 1)
+
+def test_never_sold_can_be_deleted(connection):
+    assert db.delete_product(connection, "DRI-DRI-002") is True
+    assert db.get_product(connection, "DRI-DRI-002") is None
+
+def test_sale_that_fails_halfway_changes_nothing(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.record_a_sale(connection, [("TOO-TOO-001", 2), ("TOO-TOO-002", 50)])
+    assert snapshot(connection) == before
+
+def test_sale_of_unknown_product_changes_nothing(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.record_a_sale(connection, [("TOO-TOO-001", 2), ("LOLLMAOEVEN", 1)])
+    assert snapshot(connection) == before
