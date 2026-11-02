@@ -62,6 +62,14 @@ def add_product(connection):
         prompt_user("Reorder level", int)
     )
     print(f"Added product #{product_id}.")
+def restock(connection):
+    new_stock = db.restock(
+        connection,
+        prompt_user("SKU"),
+        prompt_user("Amount to add", int),
+    )
+    print(f"Stock is now {new_stock}.")
+
 
 def main():
     with closing(db.connect()) as connection:
