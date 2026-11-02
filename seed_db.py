@@ -1,5 +1,12 @@
-import sqlite3
+from contextlib import closing
 from pathlib import Path
+
+from inventory_db import DB_PATH, connect, row_counts
+
+SCHEMA_FILE = Path(__file__).parent / "schema.sql"
+
+def create_tables(connection):
+    connection.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))
 
 
 def seed(connection):
@@ -46,20 +53,15 @@ def seed(connection):
         (10, 2, 399, 5)
     ])
 
+def main():
+    with closing(connect(DB_PATH)) as connection:
+        create_tables(connection)
+        if row_counts(connection)["suppliers"] == 0:
+            with connection:
+                seed(connection)
+        for table, count in row_counts(connection).items():
+            print(f"{table}: {count}")
+
 if __name__ == "__main__":
-    connection = connect("inventory.db")
-    connection.execute("PRAGMA foreign_keys = ON")
-
-    folder = Path(__file__).parent
-
-    connection.executescript((folder / "schema.sql").read_text(encoding="utf-8"))
-    with connection:
-        seed(connection)
-    print(connection.execute("SELECT COUNT(*) FROM suppliers").fetchone()[0])
-    print(connection.execute("SELECT COUNT(*) FROM products").fetchone()[0])
-    print(connection.execute("SELECT COUNT(*) FROM sales").fetchone()[0])
-    print(connection.execute("SELECT COUNT(*) FROM sale_items").fetchone()[0])
-    print(connection.execute("SELECT COUNT(*) FROM stock_movements").fetchone()[0])
-
-    connection.close()
+    main()
 

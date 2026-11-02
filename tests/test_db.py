@@ -30,6 +30,15 @@ def test_search_text_is_never_run_as_sql(connection):
 def test_delete_wrong_sku_fails(connection):
     assert db.delete_product(connection, "LOL") is False
 
+def snapshot(connection):
+    counts = (
+        connection.execute("SELECT COUNT(*) FROM sales").fetchone()[0],
+        connection.execute("SELECT COUNT(*) FROM sale_items").fetchone()[0],
+        connection.execute("SELECT COUNT(*) FROM stock_movements").fetchone()[0],
+    )
+    stock = connection.execute("SELECT sku, in_stock FROM products ORDER BY sku").fetchall()
+    return counts, [tuple(row) for row in stock]
+
 def test_low_stock(connection):
     rows = db.low_stock(connection)
     assert [tuple(row) for row in rows] == [
@@ -64,5 +73,44 @@ def test_never_sold(connection):
         ("Diet Coke",),
         ("Sprite",)
     ]
+    
+def test_record_a_sale(connection):
+    sale_id = db.record_a_sale(connection, [("TOO-TOO-001", 2)])
+
+    lines = connection.execute(
+        "SELECT p.sku, si.quantity, si.price_charged "
+        "FROM sale_items si JOIN products p ON p.id = si.product_id "
+        "WHERE si.sale_id = ?",
+        (sale_id,),
+    ).fetchall()
+
+    assert [tuple(line) for line in lines] == [("TOO-TOO-001", 2, 1000)]
+    assert db.get_product(connection, "TOO-TOO-001")["in_stock"] == 8
+
+def test_adjust_of_zero_is_refused(connection):
+    with pytest.raises(db.InventoryError):
+        db.adjust(connection, "TOO-TOO-001", 0)
+
+def test_restock_unknown_product_is_refused(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.restock(connection, "NOPE-000", 5)
+    assert snapshot(connection) == before
+
+def test_empty_sale_is_refused(connection):
+    with pytest.raises(db.InventoryError) as e:
+        db.record_a_sale(connection, [])
+    assert str(e.value) == "A sale needs at least one item"
+
+def test_duplicate_sku_refused(connection):
+    with pytest.raises(db.InventoryError) as e:
+        db.add_product(connection, 'TOO-TOO-001', "FortniteBattlePassTM", 'Tools', 800, 2, 10, 2)
+    assert str(e.value) == "Duplicate sku"
+
+def test_restock_0_items_is_refused(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.restock(connection, "Wrench", 0)
+    assert snapshot(connection) == before
         
 
