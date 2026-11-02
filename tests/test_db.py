@@ -97,5 +97,10 @@ def test_restock_unknown_product_is_refused(connection):
     with pytest.raises(db.InventoryError):
         db.restock(connection, "NOPE-000", 5)
     assert snapshot(connection) == before
+
+def test_empty_sale_is_refused(connection):
+    with pytest.raises(db.InventoryError) as e:
+        db.record_a_sale(connection, [])
+    assert str(e.value) == "A sale needs at least one item"
         
 

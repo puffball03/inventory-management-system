@@ -138,6 +138,8 @@ def restock(connection, name, amt):
     """)
 
 def record_a_sale(connection, items, order_date=None):
+    if not items:
+        raise InventoryError("A sale needs at least one item")
     if order_date is None:
         order_date = datetime.now().isoformat(timespec="seconds")
     try:
