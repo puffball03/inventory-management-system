@@ -4,7 +4,6 @@ from contextlib import closing
 import inventory_db as db
 from seed_db import create_tables
 
-
 VERSION = "1.0.0"
 MONEY_COLUMNS = {"unit_price", "stock_value", "revenue"}
 
@@ -133,7 +132,7 @@ def run_action(action, connection):
     except db.InventoryError as error:
         print(f"Sorry man: {error}")
     except OverflowError:
-        print(f"NUMBER WAY TOO BIG")
+        print("NUMBER WAY TOO BIG")
     except sqlite3.Error as error:
         print(f"Database issue: {error}")
     except OSError as error:
@@ -159,6 +158,8 @@ def main():
         with closing(db.connect()) as connection:
             create_tables(connection)
             run_menu(connection)
+    except sqlite3.Error as error:
+        print(f"Couldnt open the db: {error}")
     except (EOFError, KeyboardInterrupt):
         print("\nCya.")
 

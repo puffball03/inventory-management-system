@@ -1,8 +1,8 @@
-import pytest
 from pathlib import Path
 
-import inventory_db as db
+import pytest
 
+import inventory_db as db
 from seed_db import seed
 
 PROJECT_FOLDER = Path(__file__).parent.parent
