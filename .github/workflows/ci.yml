@@ -15,5 +15,16 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Lint
+        run: ruff check .
       - name: Run tests
         run: pytest
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build image
+        run: docker build -t inventory:ci .
+      - name: Run tests inside the image
+        run: docker run --rm inventory:ci pytest -q

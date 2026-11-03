@@ -1,5 +1,6 @@
-import pytest
 from pathlib import Path
+
+import pytest
 
 import inventory_db as db
 from seed_db import seed
@@ -104,7 +105,7 @@ def test_empty_sale_is_refused(connection):
 
 def test_duplicate_sku_refused(connection):
     with pytest.raises(db.InventoryError) as e:
-        db.add_product(connection, 'TOO-TOO-001', "FortniteBattlePassTM", 'Tools', 800, 2, 10, 2)
+        db.add_product(connection, 'TOO-TOO-001', "bruh", 'Tools', 800, 2, 10, 2)
     assert str(e.value) == "Duplicate sku"
 
 def test_restock_0_items_is_refused(connection):
@@ -112,5 +113,63 @@ def test_restock_0_items_is_refused(connection):
     with pytest.raises(db.InventoryError):
         db.restock(connection, "Wrench", 0)
     assert snapshot(connection) == before
+
+def test_format_cents():
+    assert db.format_cents(180000) == "$1,800.00"
+    assert db.format_cents(505) == "$5.05"
         
 
+def test_add_product_returns_new_id(connection):
+    assert db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, 1500, 5, 1) == 13
+
+def test_add_product_with_unknown_supplier_refuses(connection):
+    with pytest.raises(db.InventoryError):
+        db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 99, 1500, 5, 1)
+
+def test_sold_product_cant_be_deleted(connection):
+    assert db.delete_product(connection, "DRI-DRI-002") is True
+    assert db.get_product(connection, "DRI-DRI-002") is None
+
+def names(rows):
+    return [row["name"] for row in rows]
+
+def test_search_category_filter(connection):
+    assert names(db.search_products(connection, category="Tools")) == ["Hammer", "Mallet", "Wrench"]
+
+def test_search_max_price_filter(connection):
+    assert names(db.search_products(connection, max_price_cents=200)) == ["Candy", "Tic-Tacs"]
+
+def test_search_in_stock_only_filter(connection):
+    db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, 1500, 0, 1)
+    assert "Saw" not in names(db.search_products(connection, in_stock_only=True))
+
+def test_search_low_stock_only_filter(connection):
+    assert names(db.search_products(connection, low_stock_only=True)) == ["Desktop", "Hammer"]
+
+def test_search_filters_combined(connection):
+    assert names(db.search_products(connection, category="Tools", low_stock_only=True)) == ["Hammer"]
+
+def test_restock_negative_amount_is_refused(connection):
+    with pytest.raises(db.InventoryError):
+        db.restock(connection, "TOO-TOO-002", -5)
+
+@pytest.mark.parametrize("price, quantity", [(-1, 5), (1500, -1)])
+def test_add_product_negative_price_or_quantity_gets_refused(connection, price, quantity):
+    with pytest.raises(db.InventoryError):
+        db.add_product(connection, "TOO-TOO-004", "Saw", "Tools", 1, price, quantity, 1)
+
+def test_never_sold_can_be_deleted(connection):
+    assert db.delete_product(connection, "DRI-DRI-002") is True
+    assert db.get_product(connection, "DRI-DRI-002") is None
+
+def test_sale_that_fails_halfway_changes_nothing(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.record_a_sale(connection, [("TOO-TOO-001", 2), ("TOO-TOO-002", 50)])
+    assert snapshot(connection) == before
+
+def test_sale_of_unknown_product_changes_nothing(connection):
+    before = snapshot(connection)
+    with pytest.raises(db.InventoryError):
+        db.record_a_sale(connection, [("TOO-TOO-001", 2), ("LOLLMAOEVEN", 1)])
+    assert snapshot(connection) == before
