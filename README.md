@@ -151,7 +151,7 @@ products: 12
 sales: 5
 sale_items: 12
 stock_movements: 0
-(.venv) $ % docker run -it --rm -v inventory-data:/data inventory:1.0.0
+(.venv) $ docker run -it --rm -v inventory-data:/data inventory:1.0.0
 Inventory v1.0.0
 
 1. Search
@@ -274,3 +274,6 @@ sales: 5
 sale_items: 12
 stock_movements: 1
 ```
+
+## Self-Review
+So this project was extremely difficult for me. In the past, I found myself pretty reliant on nosql (mongodb) for all my database needs, so I've never worked with SQL. Its been a long time coming, but I learned a lot from this project, and now I'd say I have a decent understanding of sql. Still more iteration to be done, however. If I were to do this project again, first I'd probably do exactly what I did with Plan.md. Having all the functionality prewritten was awesome and made it super easy to actually write out my schema. I'd also probably spend a lot more effort on TDD for the database operations. It was much harder to write tests for interacting with a db, so I got lazy. But I think there would have been a ton of good value that would come out of really grinding out the tests and edge cases for each operation. I also tried to write my main.py with ad-hoc code at first. I ended up swapping to the modular style seen now, but I would have started with that much much earlier. I also think that splitting up functions into more helpers would have been useful. Most of my code either lies in main or inventory_db, but both ended up being pretty cluttered. My to_cents and from_cents methods were moments where I thought about how having a helper file would make those a lot cleaner. I think I would want a reviewer to check my tests most of all. It sounds kinda dumb, but I think a lot could be seen about my understanding of sql based on how I write tests. Im certain there are gaps in my testing that a seasoned sql programmer would take pride in tearing to shreds, but thats part of how I think this would be learned best. There are so many ways to interact with the data that I think seeing the holes lazy code creates would really help accelerate my knowledge. Overall, fun at times, tedious and monotonous at others project. I learned a lot, but wow did I write a lot of code. 7/10, dark wizards lair sounded really cool.
