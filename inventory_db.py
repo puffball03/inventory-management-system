@@ -85,6 +85,10 @@ def search_products(connection, text="", category=None, max_price_cents=None, in
     return connection.execute(sql, params).fetchall()
 
 #----------Reports----------#
+def count_low_stock(connection):
+    sql = "SELECT COUNT(*) FROM products WHERE in_stock <= reorder_level"
+    return connection.execute(sql).fetchone()[0]
+
 def stock_value_by_supplier(connection):
     sql = ("""
     SELECT s.name AS supplier, SUM(p.unit_price * p.in_stock) AS stock_value

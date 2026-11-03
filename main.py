@@ -4,7 +4,7 @@ from contextlib import closing
 import inventory_db as db
 from seed_db import create_tables
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 MONEY_COLUMNS = {"unit_price", "stock_value", "revenue"}
 
 def to_cents(text):
@@ -138,8 +138,13 @@ def run_action(action, connection):
     except OSError as error:
         print(f"Could not write the file: {error}")
 
+def show_low_stock_banner(connection):
+    count = db.count_low_stock(connection)
+    print(f"Low stock: {count} product(s) at or below their reorder level")
+
 def run_menu(connection):
     print(f"Inventory v{VERSION}")
+    show_low_stock_banner(connection)
     while True:
         print()
         for key, (label, _) in MENU.items():

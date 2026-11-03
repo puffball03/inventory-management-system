@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 import inventory_db as db
+import main as menu
 from seed_db import seed
 
 PROJECT_FOLDER = Path(__file__).parent.parent
@@ -173,3 +174,9 @@ def test_sale_of_unknown_product_changes_nothing(connection):
     with pytest.raises(db.InventoryError):
         db.record_a_sale(connection, [("TOO-TOO-001", 2), ("LOLLMAOEVEN", 1)])
     assert snapshot(connection) == before
+
+def test_count_low_stock(connection):
+    assert db.count_low_stock(connection) == 2
+def test_banner_shows_low_stock_count(connection, capsys):
+    menu.show_low_stock_banner(connection)
+    assert "Low stock: 2 product(s)" in capsys.readouterr().out
